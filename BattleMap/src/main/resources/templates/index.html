@@ -67,4 +67,31 @@
 
         L.circle(e.latlng, radius).addTo(map);
     }
+
+    //sockets
+    let stompClient= null;
+    function connect() {
+        const socket = new SockJS('ws://localhost:8080/ws');
+        stompClient = Stomp.over(socket);
+
+
+        stompClient.connect({}, onConnected, onError);
+    }
+    function onConnected() {
+        stompClient.subscribe(`/user/TESTNICKNAME/queue/messages`, onMessageReceived); //`/user/${nickname}/queue/messages`
+        stompClient.subscribe(`/user/public`, onMessageReceived); //`/user/${nickname}/queue/messages`
+        stompClient.send('app/user.addPlayer',{},JSON.stringify({'name': 'TESTNICKNAME', 'position': [50.034359, 14.44914]})); //todo ai - power wtf
+        console.log("connected to WS");
+    }
+    function onMessageReceived(){
+        console.log("message received");
+
+    }
+
+    function onError() {
+console.log("failed to connect to WS")
+    }
+
+
+
 </script>
