@@ -33,14 +33,19 @@
 
     //Custom marker
     let iconOptions = {
-        iconUrl: 'flag.png',
+        iconUrl: 'https://cdn-icons-png.flaticon.com/512/395/395841.png',
         iconSize: [50, 50],
+    }
+    let customIcon = L.icon(iconOptions);
 
+    let markerOptions = {
+        icon: customIcon,
+        draggable: true,
+        title: "I am red flag"
     }
 
-    let marker = L.marker([50.034359, 14.44914], //todo - add marker/draggable/with title
-        {draggable: true,
-        title: "Flag location"}).addTo(map);
+    let marker = L.marker([50.034359, 14.44914],markerOptions
+        ).addTo(map);
 
 
     map.on('locationfound', onLocationFound);
