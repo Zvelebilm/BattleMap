@@ -12,10 +12,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Player {
+public class Flag {
     @Id
-    private String name;
+    private String flagName;
     private double[] position;
-    private Long created_at;
-    public Status status;
+    public FlagStatus flagStatus;
+
 }
