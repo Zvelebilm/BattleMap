@@ -31,16 +31,23 @@
 
     map.locate({setView: true, maxZoom: 16});
 
+    //Custom marker
+    let iconOptions = {
+        iconUrl: 'flag.png',
+        iconSize: [50, 50],
+
+    }
+
     let marker = L.marker([50.034359, 14.44914], //todo - add marker/draggable/with title
         {draggable: true,
         title: "Flag location"}).addTo(map);
 
 
     map.on('locationfound', onLocationFound);
-
     map.on('locationerror', onLocationError);
-
     map.on('click', onMapClick); //todo - on-lick popup with location on map
+
+
     function onLocationError(e) {
         alert(e.message);
     }
