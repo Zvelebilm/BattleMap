@@ -4,17 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <title>BattleMap</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-          crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-            crossorigin=""></script>
-    <link href="/webjars/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    <script src="/webjars/jquery/jquery.min.js"></script>
-    <script src="/webjars/sockjs-client/sockjs.min.js"></script>
-    <script src="/webjars/stomp-websocket/stomp.min.js"></script>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<!--    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>-->
+    <link href="/webjars/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="/webjars/jquery/3.6.4/jquery.min.js"></script>
+    <script src="/webjars/sockjs-client/1.0.2/sockjs.min.js"></script>
+    <script src="/webjars/stomp-websocket/2.3.3/stomp.min.js"></script>
+    <script src="/leaflet-src.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 
 </head>
@@ -63,7 +60,7 @@
 </body>
 </html>
 <script>
-    let singleMarker;
+
 
     const map = L.map('map').setView([50.03404, 14.44861], 20); //default location and zoom level //todo - set-up by game
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -72,6 +69,7 @@
     }).addTo(map);
 
     map.locate({setView: true, maxZoom: 16});
+
 
     //Custom marker
     let iconOptions = {
@@ -89,7 +87,12 @@
     let marker = L.marker([50.034359, 14.44914], markerOptions
     ).addTo(map);
 
+    let markerTest = L.marker([50.034359, 14.44920], markerOptions
+    );
+    markerTest.addTo(map);
 
+
+    //costume marker
     map.on('locationfound', onLocationFound);
     map.on('locationerror', onLocationError);
     map.on('click', onMapClick); //todo - on-lick popup with location on map
@@ -101,6 +104,28 @@
 
     function onMapClick(e) {
         alert("You clicked the map at " + e.latlng);
+        var coord = e.latlng;
+        var lat = coord.lat;
+        var lng = coord.lng;
+
+        var popup = L.popup()
+            .setLatLng(e.latlng)
+            .setContent('<p>Hello world!<br />This is a nice popup.</p>' +
+                '<div class="createFlag" >\n' +
+                '    <div class="form-group">\n' +
+                '        <label for="flagNameId">Flag name</label>\n' +
+                '        <input type="text" id="flagNameId" class="form-control" placeholder="Flag name (number).">\n' +
+                '    </div>\n' +
+                '    <button id="createFlag" type="button" onclick="createFlag()">Create Flag</button>\n' +
+                '</div>')
+            .openOn(map);
+
+        marker.bindPopup(popup).openPopup();
+
+
+
+        console.log(e.latlng.lat)
+        console.log("You clicked the map at latitude: " + lat + " and longitude: " + lng);
     }
 
     function onLocationFound(e) {
@@ -139,8 +164,8 @@
     function sendMessage() {
         console.log("sending message");
         stompClient.send("/ws/message", {}, JSON.stringify({'messageContent': $("#message").val()}));
-        stompClient.send("/ws/flag", {},  JSON.stringify(markerOptions));
-        console.log(markerOptions)
+        stompClient.send("/ws/flag", {},  JSON.stringify(markerTest));
+        console.log(marker)
     }
 
 
