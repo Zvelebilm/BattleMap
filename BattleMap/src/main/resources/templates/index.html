@@ -4,17 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <title>BattleMap</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-          crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-            crossorigin=""></script>
-    <link href="/webjars/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    <script src="/webjars/jquery/jquery.min.js"></script>
-    <script src="/webjars/sockjs-client/sockjs.min.js"></script>
-    <script src="/webjars/stomp-websocket/stomp.min.js"></script>
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <!--    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>-->
+    <link href="/webjars/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="/webjars/jquery/3.6.4/jquery.min.js"></script>
+    <script src="/webjars/sockjs-client/1.0.2/sockjs.min.js"></script>
+    <script src="/webjars/stomp-websocket/2.3.3/stomp.min.js"></script>
+    <script src="/leaflet-src.js"></script>
+    <script src="https://unpkg.com/leaflet@latest/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-providers@latest/leaflet-providers.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 
 </head>
@@ -22,7 +22,7 @@
 <h1>Hello World</h1>
 //tryout
 <div class="container" style="margin-top: 50px">
-    <button id="connectToWs" class="btn btn-default" type="button" onclick = "connect()">connect to WS</button>
+    <button id="connectToWs" class="btn btn-default" type="button" onclick="connect()">connect to WS</button>
     <div class="row">
         <div class="col-md-12">
             <form class="form-inline">
@@ -56,52 +56,177 @@
             </table>
         </div>
     </div>
+    <div>
+        <form class="form-inline">
+            <div class="form-group">
+                <label for="newFlagName">newFlagName</label>
+                <input type="text" id="newFlagName" class="form-control" placeholder="Enter your flag name here...">
+            </div>
+            <button class="btn btn-default" type="button" onclick="createFlag()">Create Flag</button>
+        </form>
+    </div>
+</div>
+
+<div>
+    <input class="get-markers" type="button" value="Get all the Markers" />
 </div>
 //tryout
-<div id="map"></div>
+<div id="map" data-mode="">
+    <input type="hidden" data-map-markers="" value="" name="map-geojson-data" />
+</div>
 
 </body>
 </html>
 <script>
-    let singleMarker;
 
-    const map = L.map('map').setView([50.03404, 14.44861], 20); //default location and zoom level //todo - set-up by game
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    }).addTo(map);
+    //add save multiple flags https://www.youtube.com/watch?v=ls_Eue1xUtY&list=PLyWyQBSWLw1NH1wsA0wkSMTlQ45P0AqCj&ab_channel=GeoDev
+    //https://embed.plnkr.co/plunk/UNrsy4SYbSMVrRRxTf1d
+    //todo - find way how to save flags to geoJson
+    //todo - how to send it to BE
+    //todo - from BE to FE
+    //todo - render geoJson on FE
 
+
+
+    //base map set-up + layers //base map set-up + layers //base map set-up + layers //base map set-up + layers
+    let imageMap = L.tileLayer.provider('Esri.WorldImagery');
+    let topoMap = L.tileLayer.provider('Esri.WorldTopoMap');
+    let baseMaps = {
+        OSM: topoMap,
+        "Esri World Imagery": imageMap,
+        "Esri World Topo Map": topoMap
+    }
+    let map = L.map('map',{
+    center: [50.03404, 14.44861],//todo - set-up by game
+    zoom: 20,//default location and zoom level
+    layers: [topoMap],
+    }
+    );
+    let mapLayers = L.control.layers(baseMaps).addTo(map);
     map.locate({setView: true, maxZoom: 16});
+    //base map set-up + layers //base map set-up + layers //base map set-up + layers //base map set-up + layers
 
-    //Custom marker
-    let iconOptions = {
-        iconUrl: 'https://cdn-icons-png.flaticon.com/512/395/395841.png',
-        iconSize: [50, 50],
-    }
-    let customIcon = L.icon(iconOptions);
-
-    let markerOptions = {
-        icon: customIcon,
-        draggable: true,
-        title: "I am red flag"
-    }
-
-    let marker = L.marker([50.034359, 14.44914], markerOptions
-    ).addTo(map);
-
-
+    //costume marker
     map.on('locationfound', onLocationFound);
     map.on('locationerror', onLocationError);
-    map.on('click', onMapClick); //todo - on-lick popup with location on map
+    map.on('click', onMapClickCreateFlag);  // attaching function on map click
+
+
+
+    function onMapClickCreateFlag(e) {    // Script for adding marker on map click
+
+        var geojsonFeature = {
+            "type": "Feature",
+            "properties": {
+                "flagName": "flag name", //todo - set name of flag - probably take it from e - event
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [e.latlng.lat, e.latlng.lng]
+            }
+        }
+
+        var marker;
+
+        L.geoJson(geojsonFeature, {
+
+            pointToLayer: function(feature, latlng){
+                let iconOptions = {
+                    iconUrl: 'https://cdn-icons-png.flaticon.com/512/395/395841.png',
+                    iconSize: [50, 50],
+                }
+                let customIcon = L.icon(iconOptions);
+
+                marker = L.marker(e.latlng, {
+                    icon: customIcon,
+                    title: "Resource Location",
+                    alt: "Resource Location",
+                    riseOnHover: true,
+                    draggable: true,
+
+                }).bindPopup(
+                              "<input type='button' value='Delete this marker' class='marker-delete-button'/>"
+                                + "<div class='form-group'>"
+                                + "<label for='newFlagName'>newFlagName</label>"
+                                + "<input type='text'  id='newFlagName'  class='newFlagName' placeholder='Enter your flag name here...'>"
+                                + "</div>"
+                                + "<button  type='button' class='setNameOfMarker'>SAVE</button>"
+
+                 );
+
+                marker.on("popupopen", onPopupOpen);
+
+                return marker;
+            }
+        }).addTo(map);
+    }
+
+
+    function onPopupOpen() {
+
+
+        let tempMarker = this;
+        console.log(tempMarker);
+        //var tempMarkerGeoJSON = this.toGeoJSON();
+
+        //var lID = tempMarker._leaflet_id; // Getting Leaflet ID of this marker
+
+        // To remove marker on click of delete
+        $(".marker-delete-button:visible").click(function () {
+            map.removeLayer(tempMarker);
+        });
+        $(".setNameOfMarker").click(function () {
+            tempMarker.defaultOptions.title = document.querySelector('.newFlagName').value;
+            console.log(tempMarker);
+            console.log(tempMarker.defaultOptions.title);
+            tempMarker.addTo(map);
+        });
+    }
+    let globalMakersArray = [];
+
+    // getting all the markers at once
+    function getAllMarkers() {
+
+        let allMarkersObjArray = [];//new Array();
+        let allMarkersGeoJsonArray = [];//new Array();
+
+        $.each(map._layers, function (ml) {
+            console.log(map._layers + "map._layers");
+            if (map._layers[ml].feature) {
+                console.log(map._layers[ml].defaultOptions.title + "map._layers[ml].defaultOptions.title"); //this is the name of the marker
+                // console.log(ml + "ml");
+                // console.log(map._layers[ml].feature + "map._layers[ml].feature");
+                allMarkersObjArray.push(this)
+
+                let geojsonFeature = {
+                    "type": "Feature",
+                    "properties": {
+                        "flagName": map._layers[ml].defaultOptions.title, //todo - set name of flag - probably take it from e - event
+                    },
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": map._layers[ml].feature.geometry.coordinates
+                    }
+                }
+
+
+
+                allMarkersGeoJsonArray.push(JSON.stringify(geojsonFeature))
+            }
+        })
+        globalMakersArray = allMarkersGeoJsonArray;
+        console.log(allMarkersObjArray + "allMarkersObjArray");
+        alert("total Markers : " + allMarkersGeoJsonArray.length + "\n\n" + allMarkersGeoJsonArray + "\n\n Also see your console for object view of this array" );
+    }
+
+    $(".get-markers").on("click", getAllMarkers);
+
 
 
     function onLocationError(e) {
         alert(e.message);
     }
 
-    function onMapClick(e) {
-        alert("You clicked the map at " + e.latlng);
-    }
 
     function onLocationFound(e) {
         var radius = e.accuracy;
@@ -112,8 +237,9 @@
         L.circle(e.latlng, radius).addTo(map);
     }
 
-    //sockets try
 
+
+    //sockets  //sockets  //sockets  //sockets  //sockets  //sockets  //sockets  //sockets
     var stompClient = null;
 
 
@@ -124,6 +250,9 @@
             console.log('Connected: ' + frame);
             stompClient.subscribe('/topic/messages', function (message) {
                 showMessage(JSON.parse(message.body).content);
+            });
+            stompClient.subscribe('/topic/flag', function (message) {
+                console.log(JSON.parse(message.body) + " - flag subscribed");
             });
 
         });
@@ -136,9 +265,11 @@
     function sendMessage() {
         console.log("sending message");
         stompClient.send("/ws/message", {}, JSON.stringify({'messageContent': $("#message").val()}));
-        stompClient.send("/ws/message", {},  JSON.stringify(markerOptions));
-        console.log(markerOptions)
+        stompClient.send("/ws/flag", {}, JSON.stringify(globalMakersArray));
+        console.log(globalMakersArray)
     }
+
+    //sockets  //sockets  //sockets  //sockets  //sockets  //sockets  //sockets  //sockets
 
 
 </script>
