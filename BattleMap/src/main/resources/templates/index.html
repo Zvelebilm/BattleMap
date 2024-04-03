@@ -66,12 +66,19 @@
         </form>
     </div>
 </div>
+
+<div>
+    <input class="get-markers" type="button" value="Get all the Markers" />
+</div>
 //tryout
-<div id="map"></div>
+<div id="map" data-mode="">
+    <input type="hidden" data-map-markers="" value="" name="map-geojson-data" />
+</div>
 
 </body>
 </html>
 <script>
+    //base map set-up + layers //base map set-up + layers //base map set-up + layers //base map set-up + layers
     let imageMap = L.tileLayer.provider('Esri.WorldImagery');
     let topoMap = L.tileLayer.provider('Esri.WorldTopoMap');
     let baseMaps = {
@@ -79,17 +86,15 @@
         "Esri World Imagery": imageMap,
         "Esri World Topo Map": topoMap
     }
-
     let map = L.map('map',{
     center: [50.03404, 14.44861],//todo - set-up by game
     zoom: 20,//default location and zoom level
     layers: [topoMap],
     }
     );
-
     let mapLayers = L.control.layers(baseMaps).addTo(map);
     map.locate({setView: true, maxZoom: 16});
-
+    //base map set-up + layers //base map set-up + layers //base map set-up + layers //base map set-up + layers
 
     //Custom marker
     let iconOptions = {
@@ -116,28 +121,114 @@
     map.on('locationfound', onLocationFound);
     map.on('locationerror', onLocationError);
     // map.on('click', createFlag);
-    map.on('click', onMapClick); //todo - on-lick popup with location on map
+   // map.on('click', onMapClick); //todo - on-lick popup with location on map
 
 
-    map.on('click', function(e) {
-        let popLocation= e.latlng;
-        let lat = popLocation.lat;
-        let long = popLocation.lng;
-        console.log(lat + " + lat ");
-        console.log(long + " + long ");
-        createFlag(lat, long);
-        let popup = L.popup()
-            .setLatLng(popLocation)
-            .setContent('<p>Hello world!<br />This is a nice popup.</p>' +
-                '<div class="createFlag" >\n' +
-                '    <div class="form-group">\n' +
-                '        <label for="flagNameId">Flag name</label>\n' +
-                '        <input type="text" id="flagNameId" class="form-control" placeholder="Flag name (number).">\n' +
-                '    </div>\n' +
-                '    <button id="createFlag" type="button" onclick="">Create Flag</button>\n' +
-                '</div>')
-            .openOn(map);
-    });
+
+    // attaching function on map click
+    map.on('click', onMapClickTest);
+
+    // Script for adding marker on map click
+    function onMapClickTest(e) {
+
+        var geojsonFeature = {
+            "type": "Feature",
+            "properties": {},
+            "geometry": {
+                "type": "Point",
+                "coordinates": [e.latlng.lat, e.latlng.lng]
+            }
+        }
+
+        var marker;
+
+        L.geoJson(geojsonFeature, {
+
+            pointToLayer: function(feature, latlng){
+                let iconOptions = {
+                    iconUrl: 'https://cdn-icons-png.flaticon.com/512/395/395841.png',
+                    iconSize: [50, 50],
+                }
+                let customIcon = L.icon(iconOptions);
+
+                marker = L.marker(e.latlng, {
+                    icon: customIcon,
+                    title: "Resource Location",
+                    alt: "Resource Location",
+                    riseOnHover: true,
+                    draggable: true,
+
+                }).bindPopup("<input type='button' value='Delete this marker' class='marker-delete-button'/>");
+
+                marker.on("popupopen", onPopupOpen);
+
+                return marker;
+            }
+        }).addTo(map);
+    }
+
+
+    function onPopupOpen() {
+
+        var tempMarker = this;
+
+        //var tempMarkerGeoJSON = this.toGeoJSON();
+
+        //var lID = tempMarker._leaflet_id; // Getting Leaflet ID of this marker
+
+        // To remove marker on click of delete
+        $(".marker-delete-button:visible").click(function () {
+            map.removeLayer(tempMarker);
+        });
+    }
+
+
+    // getting all the markers at once
+    function getAllMarkers() {
+
+        var allMarkersObjArray = [];//new Array();
+        var allMarkersGeoJsonArray = [];//new Array();
+
+        $.each(map._layers, function (ml) {
+            //console.log(map._layers)
+            if (map._layers[ml].feature) {
+
+                allMarkersObjArray.push(this)
+                allMarkersGeoJsonArray.push(JSON.stringify(this.toGeoJSON()))
+            }
+        })
+
+        console.log(allMarkersObjArray);
+        alert("total Markers : " + allMarkersGeoJsonArray.length + "\n\n" + allMarkersGeoJsonArray + "\n\n Also see your console for object view of this array" );
+    }
+
+    $(".get-markers").on("click", getAllMarkers);
+
+
+
+
+
+
+
+    // map.on('click', function(e) {
+    //     let popLocation= e.latlng;
+    //     let lat = popLocation.lat;
+    //     let long = popLocation.lng;
+    //     console.log(lat + " + lat ");
+    //     console.log(long + " + long ");
+    //     createFlag(lat, long);
+    //     let popup = L.popup()
+    //         .setLatLng(popLocation)
+    //         .setContent('<p>Hello world!<br />This is a nice popup.</p>' +
+    //             '<div class="createFlag" >\n' +
+    //             '    <div class="form-group">\n' +
+    //             '        <label for="flagNameId">Flag name</label>\n' +
+    //             '        <input type="text" id="flagNameId" class="form-control" placeholder="Flag name (number).">\n' +
+    //             '    </div>\n' +
+    //             '    <button id="createFlag" type="button" onclick="">Create Flag</button>\n' +
+    //             '</div>')
+    //         .openOn(map);
+    // });
 
 
     function onLocationError(e) {
@@ -170,32 +261,7 @@
         L.circle(e.latlng, radius).addTo(map);
     }
 
-    function createFlag(lat,long) {  //creating flag with name from text-input
 
-        let iconOptions = {
-            iconUrl: 'https://cdn-icons-png.flaticon.com/512/395/395841.png',
-            iconSize: [50, 50],
-        }
-        let customIcon = L.icon(iconOptions);
-
-        let markerOptions = {
-            icon: customIcon,
-            draggable: true,
-            title: JSON.stringify({'messageContent': $("#createFlag").val()})
-        }
-
-        let newMarker = L.marker([lat,long], markerOptions
-        ).addTo(map);
-        console.log(newMarker + " - new marker created");
-        let popup = L.popup()
-            .setLatLng(newMarker.getLatLng())
-            .setContent('<p>Hello world!<br />This is a nice popup.</p>')
-            .openOn(map);
-
-        marker.bindPopup(popup).openPopup();  //add popup to marker
-
-
-    }
 
     //sockets try
 
