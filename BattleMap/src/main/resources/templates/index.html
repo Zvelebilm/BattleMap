@@ -78,6 +78,15 @@
 </body>
 </html>
 <script>
+
+    //add save multiple flags https://www.youtube.com/watch?v=ls_Eue1xUtY&list=PLyWyQBSWLw1NH1wsA0wkSMTlQ45P0AqCj&ab_channel=GeoDev
+    //todo - find way how to save flags to geoJson
+    //todo - how to send it to BE
+    //todo - from BE to FE
+    //todo - render geoJson on FE
+
+
+
     //base map set-up + layers //base map set-up + layers //base map set-up + layers //base map set-up + layers
     let imageMap = L.tileLayer.provider('Esri.WorldImagery');
     let topoMap = L.tileLayer.provider('Esri.WorldTopoMap');
@@ -96,40 +105,14 @@
     map.locate({setView: true, maxZoom: 16});
     //base map set-up + layers //base map set-up + layers //base map set-up + layers //base map set-up + layers
 
-    //Custom marker
-    let iconOptions = {
-        iconUrl: 'https://cdn-icons-png.flaticon.com/512/395/395841.png',
-        iconSize: [50, 50],
-    }
-    let customIcon = L.icon(iconOptions);
-
-    let markerOptions = {
-        icon: customIcon,
-        draggable: true,
-        title: "I am red flag"
-    }
-
-    let marker = L.marker([50.034359, 14.44914], markerOptions
-    ).addTo(map);
-
-    let markerTest = L.marker([50.034359, 14.44920], markerOptions
-    );
-    markerTest.addTo(map);
-
-
     //costume marker
     map.on('locationfound', onLocationFound);
     map.on('locationerror', onLocationError);
-    // map.on('click', createFlag);
-   // map.on('click', onMapClick); //todo - on-lick popup with location on map
+    map.on('click', onMapClickCreateFlag);  // attaching function on map click
 
 
 
-    // attaching function on map click
-    map.on('click', onMapClickTest);
-
-    // Script for adding marker on map click
-    function onMapClickTest(e) {
+    function onMapClickCreateFlag(e) {    // Script for adding marker on map click
 
         var geojsonFeature = {
             "type": "Feature",
@@ -181,13 +164,13 @@
             map.removeLayer(tempMarker);
         });
     }
-
+    let globalMakersArray = [];
 
     // getting all the markers at once
     function getAllMarkers() {
 
-        var allMarkersObjArray = [];//new Array();
-        var allMarkersGeoJsonArray = [];//new Array();
+        let allMarkersObjArray = [];//new Array();
+        let allMarkersGeoJsonArray = [];//new Array();
 
         $.each(map._layers, function (ml) {
             //console.log(map._layers)
@@ -197,7 +180,7 @@
                 allMarkersGeoJsonArray.push(JSON.stringify(this.toGeoJSON()))
             }
         })
-
+        globalMakersArray = allMarkersGeoJsonArray;
         console.log(allMarkersObjArray);
         alert("total Markers : " + allMarkersGeoJsonArray.length + "\n\n" + allMarkersGeoJsonArray + "\n\n Also see your console for object view of this array" );
     }
@@ -206,51 +189,10 @@
 
 
 
-
-
-
-
-    // map.on('click', function(e) {
-    //     let popLocation= e.latlng;
-    //     let lat = popLocation.lat;
-    //     let long = popLocation.lng;
-    //     console.log(lat + " + lat ");
-    //     console.log(long + " + long ");
-    //     createFlag(lat, long);
-    //     let popup = L.popup()
-    //         .setLatLng(popLocation)
-    //         .setContent('<p>Hello world!<br />This is a nice popup.</p>' +
-    //             '<div class="createFlag" >\n' +
-    //             '    <div class="form-group">\n' +
-    //             '        <label for="flagNameId">Flag name</label>\n' +
-    //             '        <input type="text" id="flagNameId" class="form-control" placeholder="Flag name (number).">\n' +
-    //             '    </div>\n' +
-    //             '    <button id="createFlag" type="button" onclick="">Create Flag</button>\n' +
-    //             '</div>')
-    //         .openOn(map);
-    // });
-
-
     function onLocationError(e) {
         alert(e.message);
     }
 
-    function onMapClick(e) {
-        // alert("You clicked the map at " + e.latlng);
-        let coord = e.latlng;
-        let lat = coord.lat;
-        let lng = coord.lng;
-
-        //add save multiple flags https://www.youtube.com/watch?v=ls_Eue1xUtY&list=PLyWyQBSWLw1NH1wsA0wkSMTlQ45P0AqCj&ab_channel=GeoDev
-        //todo - find way how to save flags to geoJson
-        //todo - how to send it to BE
-        //todo - from BE to FE
-        //todo - render geoJson on FE
-
-        // console.log(markerTest.getLatLng());
-        // console.log(e.latlng.lat)
-        // console.log("You clicked the map at latitude: " + lat + " and longitude: " + lng);
-    }
 
     function onLocationFound(e) {
         var radius = e.accuracy;
@@ -263,8 +205,7 @@
 
 
 
-    //sockets try
-
+    //sockets  //sockets  //sockets  //sockets  //sockets  //sockets  //sockets  //sockets
     var stompClient = null;
 
 
@@ -290,9 +231,11 @@
     function sendMessage() {
         console.log("sending message");
         stompClient.send("/ws/message", {}, JSON.stringify({'messageContent': $("#message").val()}));
-        stompClient.send("/ws/flag", {}, JSON.stringify(markerTest));
-        console.log(marker)
+        stompClient.send("/ws/flag", {}, JSON.stringify(globalMakersArray));
+        console.log(globalMakersArray)
     }
+
+    //sockets  //sockets  //sockets  //sockets  //sockets  //sockets  //sockets  //sockets
 
 
 </script>
