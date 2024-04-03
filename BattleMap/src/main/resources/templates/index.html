@@ -80,6 +80,7 @@
 <script>
 
     //add save multiple flags https://www.youtube.com/watch?v=ls_Eue1xUtY&list=PLyWyQBSWLw1NH1wsA0wkSMTlQ45P0AqCj&ab_channel=GeoDev
+    //https://embed.plnkr.co/plunk/UNrsy4SYbSMVrRRxTf1d
     //todo - find way how to save flags to geoJson
     //todo - how to send it to BE
     //todo - from BE to FE
@@ -190,15 +191,31 @@
         let allMarkersGeoJsonArray = [];//new Array();
 
         $.each(map._layers, function (ml) {
-            //console.log(map._layers)
+            console.log(map._layers + "map._layers");
             if (map._layers[ml].feature) {
-
+                console.log(map._layers[ml].defaultOptions.title + "map._layers[ml].defaultOptions.title"); //this is the name of the marker
+                // console.log(ml + "ml");
+                // console.log(map._layers[ml].feature + "map._layers[ml].feature");
                 allMarkersObjArray.push(this)
-                allMarkersGeoJsonArray.push(JSON.stringify(this.toGeoJSON()))
+
+                let geojsonFeature = {
+                    "type": "Feature",
+                    "properties": {
+                        "flagName": map._layers[ml].defaultOptions.title, //todo - set name of flag - probably take it from e - event
+                    },
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": map._layers[ml].feature.geometry.coordinates
+                    }
+                }
+
+
+
+                allMarkersGeoJsonArray.push(JSON.stringify(geojsonFeature))
             }
         })
         globalMakersArray = allMarkersGeoJsonArray;
-        console.log(allMarkersObjArray);
+        console.log(allMarkersObjArray + "allMarkersObjArray");
         alert("total Markers : " + allMarkersGeoJsonArray.length + "\n\n" + allMarkersGeoJsonArray + "\n\n Also see your console for object view of this array" );
     }
 
