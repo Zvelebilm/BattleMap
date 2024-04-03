@@ -244,7 +244,7 @@
 
 
     function connect() {
-        var socket = new SockJS('/websockets');
+        let socket = new SockJS('/websockets');
         stompClient = Stomp.over(socket);
         stompClient.connect({}, function (frame) {
             console.log('Connected: ' + frame);
