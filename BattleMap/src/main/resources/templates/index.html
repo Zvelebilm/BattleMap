@@ -116,7 +116,9 @@
 
         var geojsonFeature = {
             "type": "Feature",
-            "properties": {},
+            "properties": {
+                "flagName": "flag name", //todo - set name of flag - probably take it from e - event
+            },
             "geometry": {
                 "type": "Point",
                 "coordinates": [e.latlng.lat, e.latlng.lng]
@@ -141,7 +143,10 @@
                     riseOnHover: true,
                     draggable: true,
 
-                }).bindPopup("<input type='button' value='Delete this marker' class='marker-delete-button'/>");
+                }).bindPopup(
+                              "<input type='button' value='Delete this marker' class='marker-delete-button'/>"
+                             +"<input type='text'  class='setNameOfMarker'/>"
+                 );
 
                 marker.on("popupopen", onPopupOpen);
 
@@ -153,8 +158,9 @@
 
     function onPopupOpen() {
 
-        var tempMarker = this;
 
+        let tempMarker = this;
+        console.log(tempMarker);
         //var tempMarkerGeoJSON = this.toGeoJSON();
 
         //var lID = tempMarker._leaflet_id; // Getting Leaflet ID of this marker
@@ -162,6 +168,12 @@
         // To remove marker on click of delete
         $(".marker-delete-button:visible").click(function () {
             map.removeLayer(tempMarker);
+        });
+        $(".setNameOfMarker").click(function () {
+            tempMarker.defaultOptions.title = document.querySelector('.setNameOfMarker').value;
+            console.log(tempMarker);
+            console.log(tempMarker.defaultOptions.title);
+            tempMarker.addTo(map);
         });
     }
     let globalMakersArray = [];
