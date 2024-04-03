@@ -145,7 +145,12 @@
 
                 }).bindPopup(
                               "<input type='button' value='Delete this marker' class='marker-delete-button'/>"
-                             +"<input type='text'  class='setNameOfMarker'/>"
+                                + "<div class='form-group'>"
+                                + "<label for='newFlagName'>newFlagName</label>"
+                                + "<input type='text'  id='newFlagName'  class='newFlagName' placeholder='Enter your flag name here...'>"
+                                + "</div>"
+                                + "<button  type='button' class='setNameOfMarker'>SAVE</button>"
+
                  );
 
                 marker.on("popupopen", onPopupOpen);
@@ -170,7 +175,7 @@
             map.removeLayer(tempMarker);
         });
         $(".setNameOfMarker").click(function () {
-            tempMarker.defaultOptions.title = document.querySelector('.setNameOfMarker').value;
+            tempMarker.defaultOptions.title = document.querySelector('.newFlagName').value;
             console.log(tempMarker);
             console.log(tempMarker.defaultOptions.title);
             tempMarker.addTo(map);
