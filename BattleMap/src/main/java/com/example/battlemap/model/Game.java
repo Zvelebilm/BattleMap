@@ -1,20 +1,20 @@
 package com.example.battlemap.model;
 
-import lombok.*;
-import org.springframework.data.annotation.Id;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
-
+@Document
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-@Builder
-@Document
+@AllArgsConstructor
 public class Game {
-    @Id
-    private String gameName;
-    private List<Player> players; //todo players in-game>
-    private List<Flag> flags;
+  private  String gameName;
+    //todo add location (start place)
+    //todo add date of event
+   private List<Flag> flags;
 }
