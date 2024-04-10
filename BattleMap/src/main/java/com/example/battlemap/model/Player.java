@@ -17,5 +17,4 @@ public class Player {
     private String name;
     private double[] position;
     private Long created_at;
-    public Status status;
 }

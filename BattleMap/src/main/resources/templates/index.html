@@ -183,12 +183,15 @@
         });
     }
     let globalMakersArray = [];
+    let game = {
+    };
 
     // getting all the markers at once
     function getAllMarkers() {
 
         let allMarkersObjArray = [];//new Array();
         let allMarkersGeoJsonArray = [];//new Array();
+        let flagObjectArray = [];
 
         $.each(map._layers, function (ml) {
             console.log(map._layers + "map._layers");
@@ -201,22 +204,27 @@
                 let geojsonFeature = {
                     "type": "Feature",
                     "properties": {
-                        "flagName": map._layers[ml].defaultOptions.title, //todo - set name of flag - probably take it from e - event
-                    },
+                        "flagName": map._layers[ml].defaultOptions.title,
+                        "flagIconURL" : map._layers[ml].defaultOptions.icon.options.iconUrl
+                                 },
                     "geometry": {
                         "type": "Point",
                         "coordinates": map._layers[ml].feature.geometry.coordinates
-                    }
+                                }
                 }
-
-
-
+                flagObjectArray.push(geojsonFeature);
                 allMarkersGeoJsonArray.push(JSON.stringify(geojsonFeature))
             }
         })
+       game ={
+            gameName: "BattleMap",
+            flags:flagObjectArray
+        }
+        console.log(game);
+
         globalMakersArray = allMarkersGeoJsonArray;
         console.log(allMarkersObjArray + "allMarkersObjArray");
-        alert("total Markers : " + allMarkersGeoJsonArray.length + "\n\n" + allMarkersGeoJsonArray + "\n\n Also see your console for object view of this array" );
+        //alert("total Markers : " + allMarkersGeoJsonArray.length + "\n\n" + allMarkersGeoJsonArray + "\n\n Also see your console for object view of this array" );
     }
 
     $(".get-markers").on("click", getAllMarkers);
@@ -229,7 +237,7 @@
 
 
     function onLocationFound(e) {
-        var radius = e.accuracy;
+        let radius = e.accuracy;
 
         L.marker(e.latlng).addTo(map)
             .bindPopup("You are within " + radius + " meters from this point").openPopup();
@@ -240,11 +248,11 @@
 
 
     //sockets  //sockets  //sockets  //sockets  //sockets  //sockets  //sockets  //sockets
-    var stompClient = null;
+    let stompClient = null;
 
 
     function connect() {
-        var socket = new SockJS('/websockets');
+        let socket = new SockJS('/websockets');
         stompClient = Stomp.over(socket);
         stompClient.connect({}, function (frame) {
             console.log('Connected: ' + frame);
@@ -265,8 +273,9 @@
     function sendMessage() {
         console.log("sending message");
         stompClient.send("/ws/message", {}, JSON.stringify({'messageContent': $("#message").val()}));
-        stompClient.send("/ws/flag", {}, JSON.stringify(globalMakersArray));
-        console.log(globalMakersArray)
+        getAllMarkers();
+        stompClient.send("/ws/flag", {}, JSON.stringify(game));
+        console.log(game + "logging game sended to BE");
     }
 
     //sockets  //sockets  //sockets  //sockets  //sockets  //sockets  //sockets  //sockets
