@@ -1,9 +1,6 @@
 package com.example.battlemap.controller;
 
-import com.example.battlemap.model.DTOResponseMessage;
-import com.example.battlemap.model.DTOTestMessage;
-import com.example.battlemap.model.Flag;
-import com.example.battlemap.model.Game;
+import com.example.battlemap.model.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
@@ -12,9 +9,19 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.util.HtmlUtils;
 
+import java.util.Arrays;
+
 @Controller
 @Log4j2
 public class MessageController {
+
+    private final RepositoryService repositoryService;
+
+    public MessageController(RepositoryService repositoryService) {
+        this.repositoryService = repositoryService;
+    }
+
+
     @MessageMapping("/message")
     @SendTo("/topic/messages") //whoever subscribe to this topic will receive the message
     public DTOResponseMessage getMessage(final DTOTestMessage message) throws InterruptedException {
@@ -36,8 +43,9 @@ public class MessageController {
         for (Flag flagTest : game.getFlags()) {
             System.out.println(flagTest.getProperties().getFlagName());
             System.out.println(flagTest.getProperties().getFlagIconURL());
-            System.out.println(flagTest.getGeometry().getCoordinates());
+            System.out.println(Arrays.toString(flagTest.getGeometry().getCoordinates()));
         }
+        repositoryService.saveGame(game);
 
 
         return flag;
