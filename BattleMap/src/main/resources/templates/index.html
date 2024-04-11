@@ -135,8 +135,11 @@
 
 
                 //custom marker//custom marker//custom marker//custom marker//custom marker
+                let blueFlag ='https://upload.wikimedia.org/wikipedia/commons/1/17/Blue_flag_waving.svg';
+                let redFlag ='https://cdn-icons-png.flaticon.com/512/395/395841.png';
+                let neutralFlag ='https://upload.wikimedia.org/wikipedia/commons/b/bd/Gray_flag_waving.png';
                 let iconOptions = {
-                    iconUrl: 'https://cdn-icons-png.flaticon.com/512/395/395841.png',
+                    iconUrl: neutralFlag,
                     iconSize: [50, 50],
                 }
                 let customIcon = L.icon(iconOptions);
@@ -148,16 +151,18 @@
                     draggable: true,
                     //custom marker//custom marker//custom marker//custom marker//custom marker
                 }).bindPopup(
-                              "<div class='form-group'>"
-                                + "<h3 id='titleOfFlagPopup'></h3>"
-                                +   "<h4 id='locationOfFlagPopup'></h4>"
-
-                                + "<label for='newFlagName'>Flag name: </label>"
-                                + "<input type='text'  id='newFlagName'  class='newFlagName' placeholder='Enter name/number of flag'>"
-                                + "</div>"
-                                + "<button  type='button' class='setNameOfMarker'>SAVE</button>"
-                                + "<input type='button' value='Delete this marker' class='marker-delete-button'/>"
-
+                    "<div class='form-group'>"
+                    + "<h3 id='titleOfFlagPopup'></h3>"
+                    + "<h4 id='locationOfFlagPopup'></h4>"
+                    + "<label for='newFlagName'>Flag name: </label>"
+                    + "<input type='text'  id='newFlagName'  class='newFlagName' placeholder='Enter name/number of flag'>"
+                    + " <div class='image-container-popup'>"
+                    + "  <img src='" + neutralFlag + "' alt='Neutral Flag' style='width: 50px; height: 50px;' '>"
+                    + "  <img src='" + blueFlag + "' alt='Blue Flag' style='width: 50px; height: 50px;' '>"
+                    + "  <img src='" + redFlag + "' alt='Red Flag' style='width: 50px; height: 50px;'  '>"
+                    + "</div>"
+                    + "<button  type='button' class='setNameOfMarker'>SAVE</button>"
+                    + "<input type='button' value='Delete this marker' class='marker-delete-button'/>"
                             );
 
                 marker.on("popupopen", onPopupOpen);
@@ -165,6 +170,10 @@
                 return marker;
             }
         }).addTo(map);
+    }
+    function selectImage(src,tempMarker) {
+        tempMarker.defaultOptions.icon.options.iconUrl = src;
+        return tempMarker;
     }
 
     function onPopupOpen() {
@@ -184,6 +193,15 @@
             tempMarker.defaultOptions.title = document.querySelector('.newFlagName').value;
             console.log(tempMarker.defaultOptions.title + " setNameOfMaker");
             tempMarker.addTo(map);
+        });
+
+        $(".image-container-popup img").click(function () {
+            selectImage(this.src,tempMarker);
+            tempMarker.defaultOptions.icon.options.iconUrl = this.src;
+            //todo need to fix map update/reload find a way
+            tempMarker.addTo(map);
+
+            console.log(tempMarker.defaultOptions.icon.options.iconUrl + " marker was set to");
         });
         popupH3content.innerHTML = tempMarker.defaultOptions.title;
         locationOfFlagPopup.innerHTML = tempMarker.getLatLng();
