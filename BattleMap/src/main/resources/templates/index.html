@@ -81,8 +81,6 @@
 
     //add save multiple flags https://www.youtube.com/watch?v=ls_Eue1xUtY&list=PLyWyQBSWLw1NH1wsA0wkSMTlQ45P0AqCj&ab_channel=GeoDev
     //https://embed.plnkr.co/plunk/UNrsy4SYbSMVrRRxTf1d
-    //todo - find way how to save flags to geoJson
-    //todo - how to send it to BE
     //todo - from BE to FE
     //todo - render geoJson on FE
 
@@ -109,16 +107,16 @@
     //costume marker
     map.on('locationfound', onLocationFound);
     map.on('locationerror', onLocationError);
-    map.on('click', onMapClickCreateFlag);  // attaching function on map click
+    map.on('click', onMapClick);  // attaching function on map click
 
 
 
-    function onMapClickCreateFlag(e) {    // Script for adding marker on map click
+    function onMapClick(e) {    // Script for adding marker on map click
 
-        var geojsonFeature = {
+        let geojsonFeature = {
             "type": "Feature",
             "properties": {
-                "flagName": "flag name", //todo - set name of flag - probably take it from e - event
+                "flagName": "flag name",
             },
             "geometry": {
                 "type": "Point",
@@ -126,33 +124,41 @@
             }
         }
 
-        var marker;
+        let marker;
 
         L.geoJson(geojsonFeature, {
 
-            pointToLayer: function(feature, latlng){
+            pointToLayer: function(){
+
+
+
+
+
+                //custom marker//custom marker//custom marker//custom marker//custom marker
                 let iconOptions = {
                     iconUrl: 'https://cdn-icons-png.flaticon.com/512/395/395841.png',
                     iconSize: [50, 50],
                 }
                 let customIcon = L.icon(iconOptions);
-
                 marker = L.marker(e.latlng, {
                     icon: customIcon,
-                    title: "Resource Location",
-                    alt: "Resource Location",
+                    title: "Default Marker",
+                    alt: "Default Marker",
                     riseOnHover: true,
                     draggable: true,
-
+                    //custom marker//custom marker//custom marker//custom marker//custom marker
                 }).bindPopup(
-                              "<input type='button' value='Delete this marker' class='marker-delete-button'/>"
-                                + "<div class='form-group'>"
-                                + "<label for='newFlagName'>newFlagName</label>"
-                                + "<input type='text'  id='newFlagName'  class='newFlagName' placeholder='Enter your flag name here...'>"
+                              "<div class='form-group'>"
+                                + "<h3 id='titleOfFlagPopup'></h3>"
+                                +   "<h4 id='locationOfFlagPopup'></h4>"
+
+                                + "<label for='newFlagName'>Flag name: </label>"
+                                + "<input type='text'  id='newFlagName'  class='newFlagName' placeholder='Enter name/number of flag'>"
                                 + "</div>"
                                 + "<button  type='button' class='setNameOfMarker'>SAVE</button>"
+                                + "<input type='button' value='Delete this marker' class='marker-delete-button'/>"
 
-                 );
+                            );
 
                 marker.on("popupopen", onPopupOpen);
 
@@ -161,11 +167,10 @@
         }).addTo(map);
     }
 
-
     function onPopupOpen() {
-
-
         let tempMarker = this;
+        let popupH3content = document.getElementById("titleOfFlagPopup");
+        let locationOfFlagPopup = document.getElementById("locationOfFlagPopup");
         console.log(tempMarker);
         //var tempMarkerGeoJSON = this.toGeoJSON();
 
@@ -177,11 +182,14 @@
         });
         $(".setNameOfMarker").click(function () {
             tempMarker.defaultOptions.title = document.querySelector('.newFlagName').value;
-            console.log(tempMarker);
-            console.log(tempMarker.defaultOptions.title);
+            console.log(tempMarker.defaultOptions.title + " setNameOfMaker");
             tempMarker.addTo(map);
         });
+        popupH3content.innerHTML = tempMarker.defaultOptions.title;
+        locationOfFlagPopup.innerHTML = tempMarker.getLatLng();
     }
+
+
     let globalMakersArray = [];
     let game = {
     };
