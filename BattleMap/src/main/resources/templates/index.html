@@ -59,11 +59,11 @@
 </div>
 
 <div>
-    <input class="get-markers" type="button" value="Get all the Markers" />
+    <input class="get-markers" type="button" value="Get all the Markers"/>
 </div>
 //tryout
 <div id="map" data-mode="">
-    <input type="hidden" data-map-markers="" value="" name="map-geojson-data" />
+    <input type="hidden" data-map-markers="" value="" name="map-geojson-data"/>
 </div>
 
 </body>
@@ -76,7 +76,6 @@
     //todo - render geoJson on FE
 
 
-
     //base map set-up + layers //base map set-up + layers //base map set-up + layers //base map set-up + layers
     let imageMap = L.tileLayer.provider('Esri.WorldImagery');
     let topoMap = L.tileLayer.provider('Esri.WorldTopoMap');
@@ -85,11 +84,11 @@
         "Esri World Imagery": imageMap,
         "Esri World Topo Map": topoMap
     }
-    let map = L.map('map',{
-    center: [50.03404, 14.44861],//todo - set-up by game
-    zoom: 20,//default location and zoom level
-    layers: [topoMap],
-    }
+    let map = L.map('map', {
+            center: [50.03404, 14.44861],//todo - set-up by game
+            zoom: 20,//default location and zoom level
+            layers: [topoMap],
+        }
     );
     let mapLayers = L.control.layers(baseMaps).addTo(map);
     map.locate({setView: true, maxZoom: 16});
@@ -100,6 +99,10 @@
     map.on('locationerror', onLocationError);
     map.on('click', onMapClick);  // attaching function on map click
 
+
+    let blueFlag = 'https://upload.wikimedia.org/wikipedia/commons/1/17/Blue_flag_waving.svg';
+    let redFlag = 'https://cdn-icons-png.flaticon.com/512/395/395841.png';
+    let neutralFlag = 'https://upload.wikimedia.org/wikipedia/commons/b/bd/Gray_flag_waving.png';
 
 
     function onMapClick(e) {    // Script for adding marker on map click
@@ -118,17 +121,8 @@
         let marker;
 
         L.geoJson(geojsonFeature, {
-
-            pointToLayer: function(){
-
-
-
-
-
+            pointToLayer: function () {
                 //custom marker//custom marker//custom marker//custom marker//custom marker
-                let blueFlag ='https://upload.wikimedia.org/wikipedia/commons/1/17/Blue_flag_waving.svg';
-                let redFlag ='https://cdn-icons-png.flaticon.com/512/395/395841.png';
-                let neutralFlag ='https://upload.wikimedia.org/wikipedia/commons/b/bd/Gray_flag_waving.png';
                 let iconOptions = {
                     iconUrl: neutralFlag,
                     iconSize: [50, 50],
@@ -154,15 +148,15 @@
                     + "</div>"
                     + "<button  type='button' class='setNameOfMarker'>SAVE</button>"
                     + "<input type='button' value='Delete this marker' class='marker-delete-button'/>"
-                            );
+                );
 
                 marker.on("popupopen", onPopupOpen);
-
                 return marker;
             }
         }).addTo(map);
     }
-    function selectImage(src,tempMarker) {
+
+    function selectImage(src, tempMarker) {
         tempMarker.defaultOptions.icon.options.iconUrl = src;
         return tempMarker;
     }
@@ -173,9 +167,7 @@
         let locationOfFlagPopup = document.getElementById("locationOfFlagPopup");
         console.log(tempMarker);
         //var tempMarkerGeoJSON = this.toGeoJSON();
-
         //var lID = tempMarker._leaflet_id; // Getting Leaflet ID of this marker
-
         // To remove marker on click of delete
         $(".marker-delete-button:visible").click(function () {
             map.removeLayer(tempMarker);
@@ -187,7 +179,7 @@
         });
 
         $(".image-container-popup img").click(function () {
-            selectImage(this.src,tempMarker);
+            selectImage(this.src, tempMarker);
             tempMarker.defaultOptions.icon.options.iconUrl = this.src;
             //todo need to fix map update/reload find a way
             tempMarker.addTo(map);
@@ -200,16 +192,13 @@
 
 
     let globalMakersArray = [];
-    let game = {
-    };
+    let game = {};
 
     // getting all the markers at once
     function getAllMarkers() {
-
         let allMarkersObjArray = [];//new Array();
         let allMarkersGeoJsonArray = [];//new Array();
         let flagObjectArray = [];
-
         $.each(map._layers, function (ml) {
             console.log(map._layers + "map._layers");
             if (map._layers[ml].feature) {
@@ -222,20 +211,20 @@
                     "type": "Feature",
                     "properties": {
                         "flagName": map._layers[ml].defaultOptions.title,
-                        "flagIconURL" : map._layers[ml].defaultOptions.icon.options.iconUrl
-                                 },
+                        "flagIconURL": map._layers[ml].defaultOptions.icon.options.iconUrl
+                    },
                     "geometry": {
                         "type": "Point",
                         "coordinates": map._layers[ml].feature.geometry.coordinates
-                                }
+                    }
                 }
                 flagObjectArray.push(geojsonFeature);
                 allMarkersGeoJsonArray.push(JSON.stringify(geojsonFeature))
             }
         })
-       game ={
+        game = {
             gameName: "BattleMap",
-            flags:flagObjectArray
+            flags: flagObjectArray
         }
         console.log(game);
 
@@ -244,8 +233,49 @@
         //alert("total Markers : " + allMarkersGeoJsonArray.length + "\n\n" + allMarkersGeoJsonArray + "\n\n Also see your console for object view of this array" );
     }
 
-    $(".get-markers").on("click", getAllMarkers);
 
+    function reloadMap() {
+        getAllMarkers(); //save all flags
+        $.each(map._layers, function (ml) {  //remove all flags
+            console.log(map._layers + "map._layers");
+            if (map._layers[ml].feature) {
+                map.removeLayer(this);
+            }
+        })
+        for (let i = 0; i < game.flags.length; i++) { //create all flags
+
+            let iconOptions = {
+                iconUrl: game.flags[i].properties.flagIconURL,
+                iconSize: [50, 50],
+            }
+            let customIcon = L.icon(iconOptions);
+            new L.Marker(game.flags[i].geometry.coordinates, {
+                icon: customIcon,
+                title: game.flags[i].properties.flagName,
+                alt: "Default Marker",
+                riseOnHover: true,
+                draggable: true,
+                //custom marker//custom marker//custom marker//custom marker//custom marker
+            }).bindPopup(
+                "<div class='form-group'>"
+                + "<h3 id='titleOfFlagPopup'></h3>"
+                + "<h4 id='locationOfFlagPopup'></h4>"
+                + "<label for='newFlagName'>Flag name: </label>"
+                + "<input type='text'  id='newFlagName'  class='newFlagName' placeholder='Enter name/number of flag'>"
+                + " <div class='image-container-popup'>"
+                + "  <img src='" + neutralFlag + "' alt='Neutral Flag' style='width: 50px; height: 50px;' '>"
+                + "  <img src='" + blueFlag + "' alt='Blue Flag' style='width: 50px; height: 50px;' '>"
+                + "  <img src='" + redFlag + "' alt='Red Flag' style='width: 50px; height: 50px;'  '>"
+                + "</div>"
+                + "<button  type='button' class='setNameOfMarker'>SAVE</button>"
+                + "<input type='button' value='Delete this marker' class='marker-delete-button'/>"
+            ).addTo(map);
+        }
+
+
+    }
+
+    $(".get-markers").on("click", getAllMarkers);
 
 
     function onLocationError(e) {
@@ -261,7 +291,6 @@
 
         L.circle(e.latlng, radius).addTo(map);
     }
-
 
 
     //sockets  //sockets  //sockets  //sockets  //sockets  //sockets  //sockets  //sockets
